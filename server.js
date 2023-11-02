@@ -1,24 +1,23 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const ShortUrl = require("./models/shortUrl");
+const connectDb = require("./db/connect");
+
 const app = express();
+const router = require("./routes/url");
 
-mongoose.connect("mongodb://localhost:5001/urlShortener", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
 app.set("view engine", "ejs");
+
 app.use(express.urlencoded({ extended: false }));
-app.get("/", async (req, res) => {
-  //  const shortUrls =await ShortUrl.find()
-  res.render("index"); // res.render('index' , {shortUrls :shortUrls})
-});
+app.use(express.static("./views"));
+app.use(router);
 
-app.post("/shortUrls", async (req, res) => {
-  await ShortUrl.create({ full: req.body.fullUrl });
-
-  res.redirect("/");
-});
-
-app.listen(process.env.PORT || 5000);
+const port = process.env.PORT || 3000;
+const start = async () => {
+  try {
+    await connectDb(process.env.MONGO_URI);
+    app.listen(port, () => console.log(`Port : ${port} is being used...`));
+  } catch (error) {
+    console.log(error);
+  }
+};
+start();
